@@ -4,6 +4,8 @@ const rlp = require('rlp')
 const cloakApi = require('./claokApi')
 const Account = require('eth-lib/lib/account');
 const hash = require('eth-lib/lib/hash');
+const Transaction = require('./transaction/sign').Transaction
+const utils = require('web3-utils')
 
 class CloakProvider {
     constructor(host, httpsAgent, web3) {
@@ -59,32 +61,64 @@ function getPayloadMapper(web3) {
         cloak_sendPrivacyPolicy: function (payload) {
             var newPayload = JSON.parse(JSON.stringify(payload))
             newPayload.params = newPayload.params[0]
-            var web3 = new Web3()
-            newPayload.params.policy = web3.utils.toHex(JSON.stringify(newPayload.params.policy))
+            newPayload.params.policy = utils.toHex(JSON.stringify(newPayload.params.policy))
             return newPayload
         },
         cloak_sendMultiPartyTransaction: function (payload) {
             var newPayload = JSON.parse(JSON.stringify(payload))
             var p = newPayload.params[0]
-            newPayload.params = {params: signMpt(web3, p.privateKey, p.from, p.to, p.data)}
+            newPayload.params = {params: signMpt(p.privateKey, p.from, p.to, p.data)}
             return newPayload
         },
         cloak_sendRawMultiPartyTransaction: function (payload) {
-            var newPayload = JSON.parse(JSON.stringify(payload))
-            newPayload.method = "cloak_sendMultiPartyTransaction"
-            newPayload.params = {params: newPayload.params[0]}
-            return newPayload
+            var p = payload.params[0]
+            p.params.data = utils.toHex(JSON.stringify(p.params.data))
+            var ethTx = new Transaction(p.params, 2);
+            const result = signatrue(p.account.privateKey, ethTx)
+            payload.params = [result.rawTransaction]
+            return payload
+        },
+        cloak_sendRawPrivacyTransaction: function (payload) {
+            var p = payload.params[0]
+            p.params.data = utils.toHex(JSON.stringify(p.params.data))
+            var ethTx = new Transaction(p.params, 1);
+            const result = signatrue(p.account.privateKey, ethTx)
+            payload.params = [result.rawTransaction]
+            return payload
         }
     }
 }
 
-function signMpt(web3, privateKey, from, to, data, nonce=0) {
+function signMpt(privateKey, from, to, data, nonce=0) {
     var dataBuffer = Buffer.from(data, 'utf8')
     var msg = rlp.encode([nonce, from, to, dataBuffer])
     var msgHash = hash.keccak256s(msg)
     var vars = Account.decodeSignature(Account.sign(msgHash, privateKey))
     var res = rlp.encode([nonce, from, to, dataBuffer, vars[0], vars[1], vars[2]])
-    return web3.utils.toHex(res)
+    return utils.toHex(res)
+}
+
+function signatrue(privateKey, ethTx) {
+    if (privateKey.startsWith('0x')) {
+        privateKey = privateKey.substring(2);
+    }
+    ethTx.sign(Buffer.from(privateKey, 'hex'))
+    var validationResult = ethTx.validate(true);
+    if (validationResult !== '') {
+        console.log('Signer Error: ' + validationResult);
+    }
+    var rlpEncoded = ethTx.serialize().toString('hex');
+    var rawTransaction = '0x' + rlpEncoded;
+    var transactionHash = utils.keccak256(rawTransaction);
+    var result = {
+        messageHash: '0x' + Buffer.from(ethTx.hash(false)).toString('hex'),
+        v: '0x' + Buffer.from(ethTx.v).toString('hex'),
+        r: '0x' + Buffer.from(ethTx.r).toString('hex'),
+        s: '0x' + Buffer.from(ethTx.s).toString('hex'),
+        rawTransaction: rawTransaction,
+        transactionHash: transactionHash
+    };
+    return result
 }
 
 exports.CloakProvider = CloakProvider

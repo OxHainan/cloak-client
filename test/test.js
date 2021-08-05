@@ -50,43 +50,31 @@ describe('eth', function () {
 });
 
 describe('cloak', function(){
-    describe('sendPrivacyPolicy', async function(){
-        it('should be ok', async function() {
-            var web3 = new Web3()
-            web3.setProvider(new cloak.CloakProvider("https://127.0.0.1:8000", httpsAgent, web3))
-            deployed = await deployGetSum()
-            const account = web3.eth.accounts.create()
-            await web3.cloak.sendPrivacyPolicy({
-                from: account.address,
-                to: deployed.options.address,
-                codeHash: '',
-                verifierAddr: account.address,
-                policy: JSON.parse(fs.readFileSync(process.env.EVM_TEST_DIR + "/EvmTestPolicy.json")),
-            })
-        })
-    })
-})
-
-describe('cloak', function(){
     describe('sendMpt', async function(){
         it('should be ok', async function() {
             var web3 = new Web3()
             web3.setProvider(new cloak.CloakProvider("https://127.0.0.1:8000", httpsAgent, web3))
             deployed = await deployGetSum()
             const account = web3.eth.accounts.create()
-            await web3.cloak.sendPrivacyPolicy({
-                from: account.address,
-                to: deployed.options.address,
-                codeHash: '',
-                verifierAddr: account.address,
-                policy: JSON.parse(fs.readFileSync(process.env.EVM_TEST_DIR + "/EvmTestPolicy.json")),
+
+            await web3.cloak.sendRawPrivacyTransaction({
+                account: account,
+                params: {
+                    from: account.address,
+                    to: account.address,
+                    codeHash: account.address,
+                    verifierAddr: account.address,
+                    data: JSON.parse(fs.readFileSync(process.env.EVM_TEST_DIR + "/EvmTestPolicy.json"))
+                }
             })
-            return web3.cloak.sendMpt({
-                privateKey: account.privateKey,
-                from: account.address,
-                to: deployed.options.address,
-                data: web3.utils.toHex(
-                    fs.readFileSync(process.env.EVM_TEST_DIR + "/mptParams.json"))
+            return web3.cloak.sendRawMultiPartyTransaction({
+                account: account,
+                params: {
+                    nonce: web3.utils.toHex(0),
+                    from: account.address,
+                    to: account.address,
+                    data: JSON.parse(fs.readFileSync(process.env.EVM_TEST_DIR + "/mptParams.json"))
+                }
             })
         })
     })
