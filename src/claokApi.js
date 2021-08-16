@@ -22,6 +22,21 @@ function loadSendSignedMpt() {
     }
 }
 
+function sendRawPrivacyTransaction() {
+    return {
+        name: "sendRawPrivacyTransaction",
+        call: "cloak_sendRawPrivacyTransaction",
+        params: 1,
+    }
+}
+
+function sendRawMultiPartyTransaction() {
+    return {
+        name: "sendRawMultiPartyTransaction",
+        call: "cloak_sendRawMultiPartyTransaction",
+        params: 1,
+    }
+}
 function loadCloakModule(web3) {
     web3.extend({
         property: "cloak",
@@ -29,6 +44,8 @@ function loadCloakModule(web3) {
             loadSendPrivacyPolicy(),
             loadSendMpt(),
             loadSendSignedMpt(),
+            sendRawPrivacyTransaction(),
+            sendRawMultiPartyTransaction()
         ]
     })
 }

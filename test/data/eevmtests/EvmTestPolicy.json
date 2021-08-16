@@ -16,6 +16,32 @@
                "owner":"all"
             }
          ],
+         "read": [
+            {
+                "name": "balances",
+                "keys": [
+                    "owner"
+                ]
+            },  {
+                "name": "receivables",
+                "keys": [
+                    "owner:msg.sender"
+                ]
+            }
+        ],
+        "mutate": [
+            {
+                "name": "balances",
+                "keys": [
+                    "msg.sender"
+                ]
+            },  {
+                "name": "receivables",
+                "keys": [
+                    "owner:msg.sender"
+                ]
+            }
+        ],
          "outputs":[
             {
                "name":"",
@@ -24,5 +50,16 @@
             }
          ]
       }
-   ]
+   ],
+   "states": [
+      {
+          "name": "balances",
+          "type": "mapping(address=>uint256)",
+          "owner": "mapping(address!x=>uint256@x)"
+      }, {
+          "name": "receivables",
+          "type": "mapping(address=>mapping(address=>uint256))",
+          "owner": "mapping(address!x=>mapping(address=>uint256@x))"
+      }
+  ]
 }
