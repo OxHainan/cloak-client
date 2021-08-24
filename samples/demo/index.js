@@ -9,8 +9,8 @@ import {exit} from 'process';
 const p_exec = promisify(exec);
 
 var args = process.argv.slice(2);
-if (args.length != 3) {
-    console.log("require <CCF_AUTH_DIR> <PKI_ADDRESS> <PUBLIC_CONTRACT_ADDRESS> arguments")
+if (args.length != 4) {
+    console.log("require <CCF_AUTH_DIR> <COMPILE_DIR> <PKI_ADDRESS> <PUBLIC_CONTRACT_ADDRESS> arguments")
     exit(1)
 }
 
@@ -21,8 +21,9 @@ const httpsAgent = new Agent({
     key: readFileSync(args[0]+"/user0_privk.pem"),
 });
 
-const pki_address = args[1]
-const public_contract_address = args[2]
+const compile_dir = args[1]
+const pki_address = args[2]
+const public_contract_address = args[3]
 
 async function get_abi_and_bin(file, name) {
     const cmd = `solc --combined-json abi,bin,bin-runtime,hashes --evm-version homestead --optimize ${file}`
@@ -44,7 +45,7 @@ async function get_pem_pk(account) {
 }
 
 async function register_pki(web3, account) {
-    const pki_file = process.env.HOME + "/git/cloak-compiler/test/demo_output/CloakPKI.sol"
+    const pki_file = compile_dir + "/CloakPKI.sol"
     const [abi, ] = await get_abi_and_bin(pki_file, "CloakPKI")
     var pki = new web3.eth.Contract(abi, pki_address)
     var tx = {
@@ -64,11 +65,10 @@ var ganache_web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:85
 await register_pki(ganache_web3, acc_1)
 
 // files
-const compiled_dir = process.env.HOME + "/git/cloak-compiler/test/demo_output"
-const code_file = compiled_dir + "/private_contract.sol"
+const code_file = compile_dir + "/private_contract.sol"
 const code_hash = web3.utils.sha3(readFileSync(code_file))
 console.log(`code hash:${code_hash}`)
-const policy_file = compiled_dir + "/policy.json"
+const policy_file = compile_dir + "/policy.json"
 console.log(`policy hash:${web3.utils.sha3(readFileSync(policy_file))}`)
 
 // deploy private contract
