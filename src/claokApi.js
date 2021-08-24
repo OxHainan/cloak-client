@@ -1,51 +1,34 @@
-function loadSendPrivacyPolicy() {
+function sendPrivacyTransaction() {
     return {
-        name: "sendPrivacyPolicy",
-        call: "cloak_sendPrivacyPolicy",
-        params: 1,
-    }
-}
-
-function loadSendMpt() {
-    return {
-        name: "sendMpt",
-        call: "cloak_sendMultiPartyTransaction",
-        params: 1,
-    }
-}
-
-function loadSendSignedMpt() {
-    return {
-        name: "sendSignedMpt",
-        call: "cloak_sendRawMultiPartyTransaction",
-        params: 1,
-    }
-}
-
-function sendRawPrivacyTransaction() {
-    return {
-        name: "sendRawPrivacyTransaction",
+        name: "sendPrivacyTransaction",
         call: "cloak_sendRawPrivacyTransaction",
         params: 1,
     }
 }
 
-function sendRawMultiPartyTransaction() {
+function sendMultiPartyTransaction() {
     return {
-        name: "sendRawMultiPartyTransaction",
+        name: "sendMultiPartyTransaction",
         call: "cloak_sendRawMultiPartyTransaction",
         params: 1,
     }
 }
+
+function getMultiPartyTransaction() {
+    return {
+        name: "getMultiPartyTransaction",
+        call: "cloak_get_mpt",
+        params: 1,
+    }
+}
+
 function loadCloakModule(web3) {
     web3.extend({
         property: "cloak",
         methods: [
-            loadSendPrivacyPolicy(),
-            loadSendMpt(),
-            loadSendSignedMpt(),
-            sendRawPrivacyTransaction(),
-            sendRawMultiPartyTransaction()
+            sendPrivacyTransaction(),
+            sendMultiPartyTransaction(),
+            getMultiPartyTransaction(),
         ]
     })
 }

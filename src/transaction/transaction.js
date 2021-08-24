@@ -32,7 +32,7 @@ var privacy = [
     {
         name: 'codeHash',
         allowZero: true,
-        length: 20,
+        length: 32,
         default: new buffer_1.Buffer.from([]),
     },
     {
@@ -158,8 +158,8 @@ var Transaction = /** @class */ (function () {
     };
 
     Transaction.prototype.getChainId = function () {
-        // return this._common.chainId();
-        return 1;
+        return this._common.chainId();
+        // return 1;
     }
 
     Transaction.prototype.getSenderAddress = function () {

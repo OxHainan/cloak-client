@@ -57,7 +57,7 @@ describe('cloak', function(){
             deployed = await deployGetSum()
             const account = web3.eth.accounts.create()
 
-            await web3.cloak.sendRawPrivacyTransaction({
+            await web3.cloak.sendPrivacyTransaction({
                 account: account,
                 params: {
                     from: account.address,
@@ -67,13 +67,13 @@ describe('cloak', function(){
                     data: JSON.parse(fs.readFileSync(process.env.EVM_TEST_DIR + "/EvmTestPolicy.json"))
                 }
             })
-            return web3.cloak.sendRawMultiPartyTransaction({
+            return web3.cloak.sendMultiPartyTransaction({
                 account: account,
                 params: {
                     nonce: web3.utils.toHex(0),
                     from: account.address,
                     to: account.address,
-                    data: JSON.parse(fs.readFileSync(process.env.EVM_TEST_DIR + "/mptParams.json"))
+                    data: web3.toHex(fs.readFileSync(process.env.EVM_TEST_DIR + "/mptParams.json"))
                 }
             })
         })

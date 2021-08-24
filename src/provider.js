@@ -1,9 +1,5 @@
 const axios = require('axios');
-const Web3 = require('web3');
-const rlp = require('rlp')
 const cloakApi = require('./claokApi')
-const Account = require('eth-lib/lib/account');
-const hash = require('eth-lib/lib/hash');
 const Transaction = require('./transaction/sign').Transaction
 const utils = require('web3-utils')
 
@@ -14,7 +10,7 @@ class CloakProvider {
         this.supportedMethods = null
         this.web3 = web3
         cloakApi.loadCloakModule(web3)
-        this.payloadMapper = getPayloadMapper(web3)
+        this.payloadMapper = getPayloadMapper()
     }
 
     _sendAsync(payload, callback) {
@@ -56,20 +52,8 @@ class CloakProvider {
     }
 }
 
-function getPayloadMapper(web3) {
+function getPayloadMapper() {
     return {
-        cloak_sendPrivacyPolicy: function (payload) {
-            var newPayload = JSON.parse(JSON.stringify(payload))
-            newPayload.params = newPayload.params[0]
-            newPayload.params.policy = utils.toHex(JSON.stringify(newPayload.params.policy))
-            return newPayload
-        },
-        cloak_sendMultiPartyTransaction: function (payload) {
-            var newPayload = JSON.parse(JSON.stringify(payload))
-            var p = newPayload.params[0]
-            newPayload.params = {params: signMpt(p.privateKey, p.from, p.to, p.data)}
-            return newPayload
-        },
         cloak_sendRawMultiPartyTransaction: function (payload) {
             var p = payload.params[0]
             p.params.data = utils.toHex(JSON.stringify(p.params.data))
@@ -80,22 +64,18 @@ function getPayloadMapper(web3) {
         },
         cloak_sendRawPrivacyTransaction: function (payload) {
             var p = payload.params[0]
-            p.params.data = utils.toHex(JSON.stringify(p.params.data))
+            // p.params.data = utils.toHex(JSON.stringify(p.params.data))
             var ethTx = new Transaction(p.params, 1);
             const result = signatrue(p.account.privateKey, ethTx)
             payload.params = [result.rawTransaction]
             return payload
+        },
+        cloak_get_mpt: function (payload) {
+            var newPayload = JSON.parse(JSON.stringify(payload))
+            newPayload.params = newPayload.params[0]
+            return newPayload
         }
     }
-}
-
-function signMpt(privateKey, from, to, data, nonce=0) {
-    var dataBuffer = Buffer.from(data, 'utf8')
-    var msg = rlp.encode([nonce, from, to, dataBuffer])
-    var msgHash = hash.keccak256s(msg)
-    var vars = Account.decodeSignature(Account.sign(msgHash, privateKey))
-    var res = rlp.encode([nonce, from, to, dataBuffer, vars[0], vars[1], vars[2]])
-    return utils.toHex(res)
 }
 
 function signatrue(privateKey, ethTx) {
