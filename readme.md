@@ -7,4 +7,4 @@ npm install OxHainan/cloak-client
 ```
 
 ## usage
-the https://github.com/OxHainan/cloak-client/blob/main/test/test.js may be a basic usage demo.
+the https://github.com/OxHainan/cloak-client/tree/main/samples/demo may be a basic usage demo.
