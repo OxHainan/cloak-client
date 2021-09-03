@@ -14,6 +14,9 @@ if (args.length != 4) {
     exit(1)
 }
 
+// Because of encryption, cloak-tee can only accept https request, you need to provide the network.pem of Cloak Network as CA, and a trusted user(cert and pk), 
+// `args[0]` is the directory of the three files.
+// If you use cloak.py setup your cloak-tee, it will be workerspace/sanbox_common under cloak-tee build directory.
 const httpsAgent = new Agent({
     rejectUnauthorized: false,
     ca: readFileSync(args[0]+"/networkcert.pem"),
@@ -44,6 +47,9 @@ async function get_pem_pk(account) {
     return stdout.toString()
 }
 
+// Before executing an MPT, if you are the owner of some state data (*e.g.*, _manager in Demo contract),
+// you need to register your public key to the PKI contract,
+// and the public key must be specified by a standard PEM format.
 async function register_pki(web3, account) {
     const pki_file = compile_dir + "/CloakPKI.sol"
     const [abi, ] = await get_abi_and_bin(pki_file, "CloakPKI")
@@ -58,6 +64,8 @@ async function register_pki(web3, account) {
     return web3.eth.sendSignedTransaction(signed.rawTransaction)
 }
 
+// Cloak-client wraps a Web3 Provider, so you can create a web3 object and create _manager account:
+// `https://127.0.0.1:8000` is cloak-tee service host and port.
 var web3 = new Web3()
 web3.setProvider(new CloakProvider("https://127.0.0.1:8000", httpsAgent, web3))
 const acc_1 = web3.eth.accounts.privateKeyToAccount("0x55b99466a43e0ccb52a11a42a3b4e10bfba630e8427570035f6db7b5c22f689e");
