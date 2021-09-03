@@ -1,7 +1,11 @@
 <img  width="280" src="https://oxhainan-cloak-docs.readthedocs-hosted.com/en/latest/_static/logo.png" alt="cloak-logo" align="left">
 
-# Cloak-Client
-Cloak-client is a Cloak web3js client to help user to interact with Cloak.
+<h1 align="center">
+    <a>
+    Cloak Client
+  </a>
+</h1>
+Cloak Client is a Cloak web3js client to help user in interacting with Cloak with ease.
 
 ## 🎉 Install
 
