@@ -51,4 +51,4 @@ You can learn more about our vision for Cloak Networks in the [**Roadmap**][road
 If you find a bug or have some new idea, please submit it to [**issues**][issues]. This is a great place to get started, gain experience,
 and get familiar with our contribution process.
 
-[issues]: https://github.com/OxHainan/cloak-tee/issues
+[issues]: https://github.com/OxHainan/cloak-client/issues
