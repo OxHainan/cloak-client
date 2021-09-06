@@ -10,7 +10,7 @@ const p_exec = promisify(exec);
 
 var args = process.argv.slice(2);
 if (args.length != 4) {
-    console.log("require <CCF_AUTH_DIR> <COMPILE_DIR> <PKI_ADDRESS> <PUBLIC_CONTRACT_ADDRESS> arguments")
+    console.log("require <CCF_AUTH_DIR> <COMPILE_DIR> <PKI_ADDRESS> arguments")
     exit(1)
 }
 
@@ -26,10 +26,9 @@ const httpsAgent = new Agent({
 
 const compile_dir = args[1]
 const pki_address = args[2]
-const public_contract_address = args[3]
 
 async function get_abi_and_bin(file, name) {
-    const cmd = `solc --combined-json abi,bin,bin-runtime,hashes --evm-version homestead --optimize ${file}`
+    const cmd = `solc --combined-json abi,bin --evm-version homestead --optimize ${file}`
     const {stdout,} = await p_exec(cmd)
     const j = JSON.parse(stdout)["contracts"][`${file}:${name}`]
     return [j["abi"], j["bin"]]
@@ -38,7 +37,14 @@ async function get_abi_and_bin(file, name) {
 async function deployContract(web3, account, file, name, params) {
     const [abi, bin] = await get_abi_and_bin(file, name)
     var contract = new web3.eth.Contract(abi)
-    return contract.deploy({data: bin, arguments: params}).send({from: account.address})
+    const tx = contract.deploy({data: bin, arguments: params})
+    const tx_options = {
+        data: tx.encodeABI(),
+        gas: 1900000,
+        gasPrice: 0,
+    }
+    var signed = await web3.eth.accounts.signTransaction(tx_options, account.privateKey)
+    return web3.eth.sendSignedTransaction(signed.rawTransaction)
 }
 
 async function get_pem_pk(account) {
@@ -78,17 +84,21 @@ const code_hash = web3.utils.sha3(readFileSync(code_file))
 console.log(`code hash:${code_hash}`)
 const policy_file = compile_dir + "/policy.json"
 console.log(`policy hash:${web3.utils.sha3(readFileSync(policy_file))}`)
+const public_contract_file = compile_dir + "/public_contract.sol"
+
+// deploy public contract
+var pub_deployed = await deployContract(ganache_web3, acc_1, public_contract_file, "Demo", [acc_1.address])
 
 // deploy private contract
-var deployed = await deployContract(web3, acc_1, code_file, "Demo", [acc_1.address])
+var pri_deployed = await deployContract(web3, acc_1, code_file, "Demo", [acc_1.address])
 
 // send privacy policy
 await web3.cloak.sendPrivacyTransaction({
     account: acc_1,
     params: {
-        to: deployed.options.address,
+        to: pri_deployed.contractAddress,
         codeHash: code_hash,
-        verifierAddr: public_contract_address,
+        verifierAddr: pub_deployed.contractAddress,
         data: web3.utils.toHex(readFileSync(policy_file))
     }
 })
@@ -98,7 +108,7 @@ var mpt_id = await web3.cloak.sendMultiPartyTransaction({
     account: acc_1,
     params: {
         nonce: web3.utils.toHex(100),
-        to: deployed.options.address,
+        to: pri_deployed.contractAddress,
         data: {
             "function": "deposit",
             "inputs": [
@@ -120,7 +130,7 @@ var mpt_id = await web3.cloak.sendMultiPartyTransaction({
     account: acc_1,
     params: {
         nonce: web3.utils.toHex(100),
-        to: deployed.options.address,
+        to: pri_deployed.contractAddress,
         data: {
             "function": "multiPartyTransfer",
             "inputs": [
