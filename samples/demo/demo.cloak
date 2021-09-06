@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: Apache-2.0
+
+pragma cloak ^0.2.0;
+
+contract Demo {
+    final address@all _manager; // all
+    mapping(address => uint256) pubBalances; // public
+    mapping(address!x => uint256@x) priBalances; // private
+
+    constructor(address manager) public {
+        _manager = manager;
+        pubBalances[manager] = 1000;
+    }
+
+    //  CT-me
+    // 
+    // @dev Deposit token from public to private balances
+    // @param value The amount to be deposited.
+    // 
+    function deposit(uint256 value) public returns (bool) {
+        require(value <= pubBalances[me]);
+        pubBalances[me] = pubBalances[me] - value;
+        priBalances[me] = priBalances[me] + value;
+        return true;
+    }
+
+    //  MPT
+    // 
+    // @dev Transfer token for a specified address
+    // @param to The address to transfer to.
+    // @param value The amount to be transferred.
+    // 
+    function multiPartyTransfer(address to, uint256 value)
+        public
+        returns (bool)
+    {
+        require(value <= priBalances[me]);
+        require(to != address(0));
+
+        priBalances[me] = priBalances[me] - value;
+        priBalances[to] = priBalances[to] + value;
+        return true;
+    }
+}
