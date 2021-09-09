@@ -7,6 +7,15 @@
 </h1>
 Cloak Client is a Cloak web3js client to help user in interacting with Cloak.
 
+
+## Contents
+
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [Documentation](#-documentation)
+- [How to Contribute](#-how-to-contribute)
+- [Warning](#-warning)
+
 ## 🎉 Installation
 
 ```
