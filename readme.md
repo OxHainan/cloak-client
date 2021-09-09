@@ -23,7 +23,9 @@ npm install OxHainan/cloak-client
 ```
 
 ## 📖 Usage
-The https://github.com/OxHainan/cloak-client/tree/main/samples/demo is a basic usage demo.
+The basic usage demo is shown in [here][demo].
+
+[demo]: https://github.com/OxHainan/cloak-client/tree/main/samples/demo
 
 ## 📖 Documentation
 
