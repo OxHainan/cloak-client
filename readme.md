@@ -22,9 +22,6 @@ The full documentation for Cloak can found on our [Cloak documentation][cloak-do
 
 [cloak-docs]: https://oxhainan-cloak-docs.readthedocs-hosted.com/en/latest/#
 
-## ❗️ Warning
-
-Cloak is an ongoing project. The security of our implementation has not been systematically reviewed yet! Do not use Cloak in a productive system or to process sensitive confidential data now. We will keep working on Cloak, making it cool and practical step-by-step. 
 
 ## 👏 How to Contribute
 
@@ -56,3 +53,7 @@ If you find a bug or have some new idea, please submit it to [**issues**][issues
 and get familiar with our contribution process.
 
 [issues]: https://github.com/OxHainan/cloak-client/issues
+
+## ❗️ Warning
+
+Cloak is an ongoing project. The security of our implementation has not been systematically reviewed yet! Do not use Cloak in a productive system or to process sensitive confidential data now. We will keep working on Cloak, making it cool and practical step-by-step. 
