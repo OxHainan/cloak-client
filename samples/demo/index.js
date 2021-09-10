@@ -9,7 +9,7 @@ import {exit} from 'process';
 const p_exec = promisify(exec);
 
 var args = process.argv.slice(2);
-if (args.length != 4) {
+if (args.length != 3) {
     console.log("require <CCF_AUTH_DIR> <COMPILE_DIR> <PKI_ADDRESS> arguments")
     exit(1)
 }
@@ -26,7 +26,6 @@ const httpsAgent = new Agent({
 
 const compile_dir = args[1]
 const pki_address = args[2]
-
 async function get_abi_and_bin(file, name) {
     const cmd = `solc --combined-json abi,bin --evm-version homestead --optimize ${file}`
     const {stdout,} = await p_exec(cmd)
@@ -88,7 +87,6 @@ const public_contract_file = compile_dir + "/public_contract.sol"
 
 // deploy public contract
 var pub_deployed = await deployContract(ganache_web3, acc_1, public_contract_file, "Demo", [acc_1.address])
-
 // deploy private contract
 var pri_deployed = await deployContract(web3, acc_1, code_file, "Demo", [acc_1.address])
 
