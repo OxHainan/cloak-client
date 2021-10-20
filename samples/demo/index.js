@@ -90,7 +90,7 @@ var pub_deployed = await deployContract(ganache_web3, acc_1, public_contract_fil
 // deploy private contract
 var pri_deployed = await deployContract(web3, acc_1, code_file, "Demo", [acc_1.address])
 
-// send privacy policy
+// send privacy polickky
 await web3.cloak.sendPrivacyTransaction({
     account: acc_1,
     params: {
@@ -109,9 +109,7 @@ var mpt_id = await web3.cloak.sendMultiPartyTransaction({
         to: pri_deployed.contractAddress,
         data: {
             "function": "deposit",
-            "inputs": [
-                {"name": "value", "value": "100"},
-            ]
+            "inputs": {"value": "100"}
         }
     }
 })
@@ -131,9 +129,7 @@ var mpt_id = await web3.cloak.sendMultiPartyTransaction({
         to: pri_deployed.contractAddress,
         data: {
             "function": "multiPartyTransfer",
-            "inputs": [
-                {"name": "value", "value": "10"},
-            ]
+            "inputs": {"value": "10"}
         }
     }
 })
@@ -145,9 +141,7 @@ await web3.cloak.sendMultiPartyTransaction({
         to: mpt_id,
         data: {
             "function": "multiPartyTransfer",
-            "inputs": [
-                {"name": "to", "value": acc_2.address},
-            ]
+            "inputs": {"to": acc_2.address}
         }
     }
 })
