@@ -22,6 +22,14 @@ function getMultiPartyTransaction() {
     }
 }
 
+function getCloakService() {
+    return {
+        name: "getCloakService",
+        call: "cloak_get_cloak_service",
+        params: 0
+    }
+}
+
 function loadCloakModule(web3) {
     web3.extend({
         property: "cloak",
@@ -29,6 +37,7 @@ function loadCloakModule(web3) {
             sendPrivacyTransaction(),
             sendMultiPartyTransaction(),
             getMultiPartyTransaction(),
+            getCloakService(),
         ]
     })
 }

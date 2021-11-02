@@ -28,6 +28,9 @@ class CloakProvider {
             url: url,
             method: method,
             httpsAgent: this.httpsAgent,
+            headers: {
+                'Content-Type': 'application/json'
+            },
             data: JSON.stringify(payload.params)
         })
             .then(resp => callback(null, resp.data))
@@ -74,7 +77,7 @@ function getPayloadMapper() {
             var newPayload = JSON.parse(JSON.stringify(payload))
             newPayload.params = newPayload.params[0]
             return newPayload
-        }
+        },
     }
 }
 
