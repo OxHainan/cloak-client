@@ -22,10 +22,10 @@ function getMultiPartyTransaction() {
     }
 }
 
-function getCloakService() {
+function getCloak() {
     return {
-        name: "getCloakService",
-        call: "cloak_get_cloak_service",
+        name: "getCloak",
+        call: "cloak_get_cloak",
         params: 0
     }
 }
@@ -37,7 +37,7 @@ function loadCloakModule(web3) {
             sendPrivacyTransaction(),
             sendMultiPartyTransaction(),
             getMultiPartyTransaction(),
-            getCloakService(),
+            getCloak(),
         ]
     })
 }

@@ -62,7 +62,7 @@ web3.setProvider(new CloakProvider("https://127.0.0.1:8000", httpsAgent, web3))
 const acc_1 = web3.eth.accounts.privateKeyToAccount("0x55b99466a43e0ccb52a11a42a3b4e10bfba630e8427570035f6db7b5c22f689e");
 var ganache_web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
 
-let cloak_info = await web3.cloak.getCloakService()
+let cloak_info = await web3.cloak.getCloak()
 
 // files
 const code_file = compile_dir + "/private_contract.sol"
