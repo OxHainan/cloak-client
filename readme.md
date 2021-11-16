@@ -1,4 +1,4 @@
-<img  width="280" src="https://oxhainan-cloak-docs.readthedocs-hosted.com/en/latest/_static/logo.png" alt="cloak-logo" align="left">
+<img  width="280" src="https://cloak-docs.readthedocs.io/en/latest/_static/logo.png" alt="cloak-logo" align="left">
 
 <h1 align="center">
     <a>
@@ -31,7 +31,7 @@ The basic usage demo is shown in [here][demo].
 
 The full documentation for Cloak can found on our [Cloak documentation][cloak-docs]
 
-[cloak-docs]: https://oxhainan-cloak-docs.readthedocs-hosted.com/en/latest/#
+[cloak-docs]: https://cloak-docs.readthedocs.io/en/latest/#
 
 
 ## 👏 How to Contribute
@@ -44,19 +44,19 @@ Read below to learn how you can take part in improving Cloak TEE.
 Cloak TEE has adopted a Code of Conduct that we expect project participants to adhere to.
 Please read the [full text][code] so that you can understand what actions will and will not be tolerated.
 
-[code]: https://oxhainan-cloak-docs.readthedocs-hosted.com/en/latest/started/contribute.html#documentation-style-guide
+[code]: https://cloak-docs.readthedocs.io/en/latest/started/contribute.html#documentation-style-guide
 
 ### [Contributing Guide][contribute]
 
 Read our [**Call for Contributions**][contribute] to learn about our development process, how to propose bugfixed and improvements, and how to build and test your changes to Cloak.
 
-[contribute]: https://oxhainan-cloak-docs.readthedocs-hosted.com/en/latest/started/contribute.html#all-contributions-counts
+[contribute]: https://cloak-docs.readthedocs.io/en/latest/started/contribute.html#all-contributions-counts
 
 ### [Open Source Roadmap][roadmap]
 
 You can learn more about our vision for Cloak Networks in the [**Roadmap**][roadmap].
 
-[roadmap]: https://oxhainan-cloak-docs.readthedocs-hosted.com/en/latest/roadmap/index.html#roadmap
+[roadmap]: https://cloak-docs.readthedocs.io/en/latest/roadmap/index.html#roadmap
 
 ### Submit Issues
 
