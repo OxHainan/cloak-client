@@ -31,10 +31,21 @@ async function get_abi_and_bin(file, name) {
     return j;
 }
 
-async function deployContract(web3, account, file, name, params) {
+async function deployPrivateContract(web3, account, file, name, params) {
     const contract = await get_abi_and_bin(file, name)
-    let addr = await Methods.deploy(web3, contract, params, account.privateKey);
+    let addr = await Methods.cloakDeploy(web3, contract, params, account.privateKey);
     return addr;
+}
+
+async function deployPublicContract(web3, cloakService, account, file, name, params) {
+    const contract = await get_abi_and_bin(file, name)
+    let newAddr = await Methods.deploy(web3, cloakService, contract, params, account)
+    return newAddr;
+}
+
+async function getCloakService(web3, addr, path) {
+    const obj = JSON.parse(readFileSync(path))
+    return new web3.eth.Contract(obj.abi, addr)
 }
 
 async function get_contract_hangle(web3, addr, dir, name) {
@@ -63,7 +74,7 @@ const acc_1 = web3.eth.accounts.privateKeyToAccount("0x55b99466a43e0ccb52a11a42a
 var ganache_web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
 
 let cloak_info = await web3.cloak.getCloak()
-
+console.log(cloak_info)
 // files
 const code_file = compile_dir + "/private_contract.sol"
 const code_hash = web3.utils.sha3(readFileSync(code_file))
@@ -72,13 +83,14 @@ const policy_file = compile_dir + "/policy.json"
 console.log(`policy hash:${web3.utils.sha3(readFileSync(policy_file))}`)
 const public_contract_file = compile_dir + "/public_contract.sol"
 
+let cloakService = await getCloakService(ganache_web3, cloak_info.cloak_service, './CloakService.json')
 // deploy public contract
-var pub_addr = await deployContract(ganache_web3, acc_1, public_contract_file, "Demo", [acc_1.address])
+var pub_addr = await deployPublicContract(ganache_web3, cloakService, acc_1, public_contract_file, "Demo", [acc_1.address])
+console.log("public contract: " + pub_addr)
 // deploy private contract
-var pri_addr = await deployContract(web3, acc_1, code_file, "Demo", [acc_1.address])
-
+var pri_addr = await deployPrivateContract(web3, acc_1, code_file, "Demo", [acc_1.address])
+console.log("private contract: " + pri_addr)
 let pubContract = await get_contract_hangle(ganache_web3, pub_addr, 'public_contract', 'Demo')
-let cloakService = await get_contract_hangle(ganache_web3, cloak_info.cloak_service ,'CloakService', 'CloakService')
 let instance = {
     pubContract,
     cloakService
@@ -86,6 +98,8 @@ let instance = {
 
 await register_pki(ganache_web3, cloakService, acc_1)
 // send privacy polickky
+await new Promise(resolve => setTimeout(resolve, 3000));
+
 await web3.cloak.sendPrivacyTransaction({
     account: acc_1,
     params: {
@@ -109,6 +123,7 @@ var mpt_id = await web3.cloak.sendMultiPartyTransaction({
     }
 })
 
+console.log("send: ", mpt_id)
 // get mpt
 await new Promise(resolve => setTimeout(resolve, 3000));
 web3.cloak.getMultiPartyTransaction({id: mpt_id}).then(console.log).catch(console.log)
@@ -116,6 +131,7 @@ web3.cloak.getMultiPartyTransaction({id: mpt_id}).then(console.log).catch(consol
 // multi party transfer
 const acc_2 = web3.eth.accounts.create();
 await register_pki(ganache_web3, cloakService, acc_2)
+await new Promise(resolve => setTimeout(resolve, 3000));
 
 var mpt_id = await web3.cloak.sendMultiPartyTransaction({
     account: acc_1,
@@ -153,3 +169,4 @@ console.log(priBalance)
 let keyExchange = new KeyExchange(acc_1.privateKey, cloak_info.tee_public_key);
 let decrypted = keyExchange.decrypt(priBalance)
 console.log(decrypted)
+

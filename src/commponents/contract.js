@@ -39,7 +39,20 @@ const methods = {
             return receipt;
     },
 
-    deploy: async function(web3, contract, params, privateKey) {
+    cloakDeploy: async function (web3, contract, params, privateKey) {
+        return new Promise(async function (resolve) {
+            let it = new web3.eth.Contract(contract.abi);
+            let data = await it.deploy({
+                data: contract.bin,
+                arguments: params
+            });
+            
+            let tx = await methods.send(web3, data, null, privateKey);
+            resolve(tx.contractAddress);
+        });
+    },
+
+    deploy: async function(web3, cloakService, contract, params, account) {
         return new Promise(async function(resolve) {
             let it = new web3.eth.Contract(contract.abi);
             let data = await it.deploy({
@@ -47,9 +60,30 @@ const methods = {
                 arguments: params
             });
 
-            let tx = await methods.send(web3, data, null, privateKey);
-            resolve(tx.contractAddress);
+            const [isDeployed, addr] = await methods.isDeployed(web3, cloakService._address, account.address, data.encodeABI());
+            if (isDeployed) {
+                resolve(addr);
+                return;
+            }
+
+            let obj = await cloakService.methods.deploy(data.encodeABI());
+            let tx = await methods.send(web3, obj, cloakService._address, account.privateKey);
+            let receipt = await web3.eth.getTransactionReceipt(tx.hash);
+            let newAddr = receipt.logs[0].topics[1].substring(26);
+            resolve(web3.utils.toChecksumAddress(newAddr))
         });
+    },
+
+    computeAddress: function (deployer, sender, bytecode) {
+        const salt = utils.keccak256(utils.encodePacked(deployer, sender));
+        const data = utils.encodePacked("0xff", deployer, salt, utils.keccak256(bytecode));
+        return utils.toChecksumAddress(utils.keccak256(data).substring(26));
+    },
+
+    isDeployed: async function (web3, cloakServiceAddr, sender, bytecode) {
+        const addr = methods.computeAddress(cloakServiceAddr, sender, bytecode);
+        const res = await web3.eth.getCode(addr);
+        return [res !== '0x', addr];
     },
 
     send: async function(web3, data, to, privateKey) {
