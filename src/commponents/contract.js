@@ -25,6 +25,20 @@ const methods = {
         });
     },
 
+    isRegisterPki: async function (cloakService, addr) {
+        return new Promise(async function(resolve) {
+            let res = await cloakService.methods.pks(addr).call()
+            resolve(res == null)
+        });
+    },
+
+    getAvailableBalance: async function (cloakService, addr) {
+        return new Promise(async function (resolve) {
+            let res = await cloakService.methods.available(addr).call()
+            resolve(res)
+        })
+    },
+
     register_pki: async function(cloakService, acc) {
         return new Promise(async function(resolve) {
             let pubKey = publicKey.Create(acc.privateKey);
@@ -86,12 +100,12 @@ const methods = {
         return [res !== '0x', addr];
     },
 
-    send: async function(web3, data, to, privateKey) {
+    send: async function(web3, data, to, privateKey, value = 0) {
         try {
             let params = {
-                data: data.encodeABI(),
+                data: data == null ? null : data.encodeABI(),
                 to: to,
-                // value: 0,
+                value: value,
                 gasPrice: utils.toHex(0),
                 gasLimit: utils.toHex(40e5)
             }
