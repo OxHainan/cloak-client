@@ -58,6 +58,18 @@ async function deposit(web3, cloakService, account) {
     await Methods.send(web3, null, cloakService._address, account.privateKey, web3.utils.toWei('5', 'ether'))
 }
 
+async function decrypt(pubContract, account, publicKey) {
+    Methods.getPubBalance(pubContract, account.address).then(balance => {
+        console.log("public balance: ", balance)
+    })
+
+    Methods.getPriBalance(pubContract, account.address).then(balance => {
+        let keyExchange = new KeyExchange(account.privateKey, publicKey);
+        let decrypted = keyExchange.decrypt(balance)
+        console.log("private balancec: ", decrypted)
+    })
+}
+
 async function generateAccounts(web3, cloakService) {
     let accounts = new Array(10);
     let transferAcc = await web3.eth.getAccounts();
@@ -136,5 +148,5 @@ async function register_service(ccfAuthDir, eth_url = 'http://localhost:8545', c
 
 export default {
     register_service, getCloakService, deployContract, generateAccounts,
-    sendPrivacyTransaction, sendMultiPartyTransaction, getMultiPartyTransaction, deposit
+    sendPrivacyTransaction, sendMultiPartyTransaction, getMultiPartyTransaction, deposit, decrypt
 }

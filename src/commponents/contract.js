@@ -15,11 +15,11 @@ const methods = {
         });
     },
 
-    getPriBalance: async function(instance, addr, privateKey) {
+    getPriBalance: async function(pubContract, addr, privateKey) {
         return new Promise(async function(resolve) {
             let res = new Array(3);
             for (let i = 0; i<res.length; i++) {
-                res[i] = await instance.pubContract.methods.priBalances(addr, i).call()
+                res[i] = await pubContract.methods.priBalances(addr, i).call()
             }
             resolve(res)
         });

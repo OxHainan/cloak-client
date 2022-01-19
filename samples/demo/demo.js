@@ -38,3 +38,5 @@ await common.sendMultiPartyTransaction(cloak_web3, accounts[1], mpt_id1, {
     }
 })
 
+await new Promise(resolve => setTimeout(resolve, 3000));
+common.decrypt(pub, accounts[0], cloak_web3.cloakInfo.tee_public_key)
