@@ -6,7 +6,7 @@ import Web3 from 'web3';
 import {readFileSync} from 'fs';
 import { promisify } from 'util';
 import { exec } from 'child_process';
-
+import generate from './generate.js';
 const p_exec = promisify(exec);
 
 async function get_abi_and_bin(file, name) {
@@ -24,7 +24,15 @@ async function deployPrivateContract(web3, account, dir, name) {
 
 async function deployPublicContract(web3, cloakService, account, dir, name, params) {
     const contract = await get_abi_and_bin(dir + '/public_contract.sol', name)
-    let addr = await Methods.deploy(web3, cloakService, contract, params, account)
+    let [addr, receipt] = await Methods.deploy(web3, cloakService, contract, params, account)
+    if (receipt) {
+        generate.write({
+            name: 'deploy', 
+            contractAddress: addr,
+            gasUsed: receipt.gasUsed
+        })
+    }
+
     return new web3.eth.Contract(contract.abi, addr);
 }
 
@@ -49,7 +57,12 @@ async function transfer(web3, defaultAccount, targetAddr) {
 async function deposit(web3, cloakService, account) {
     const available = await Methods.getAvailableBalance(cloakService, account.address);
     if (parseInt(available) < parseInt(web3.utils.toWei('5', 'ether'))) {
-        await Methods.send(web3, null, cloakService._address, account.privateKey, web3.utils.toWei('5', 'ether'))
+        let receipt = await Methods.send(web3, null, cloakService._address, account.privateKey, web3.utils.toWei('5', 'ether'))
+        generate.write({
+            name: 'deposit', 
+            gasUsed: receipt.gasUsed,
+            address: account.address
+        })
     } 
 }
 
@@ -97,6 +110,11 @@ async function register_pki(web3, cloakService, account) {
     try {
         let data = await Methods.register_pki(cloakService, account);
         let receipt = await Methods.send(web3, data, data._parent._address, account.privateKey);
+        generate.write({
+            name: "register",
+            gasUsed: receipt.gasUsed,
+            address: account.address,
+        })
     } catch (error) {
         return;
     }  
@@ -115,7 +133,7 @@ async function sendPrivacyTransaction(web3, account, pubAddr, priAddr, dir) {
     })
 }
 
-async function sendMultiPartyTransaction(web3, account, target, params) {
+async function sendMultiPartyTransaction(web3, account, target, params, first = false) {
     const id = await web3.cloak.sendMultiPartyTransaction({
         account: account,
         params: {
@@ -124,7 +142,14 @@ async function sendMultiPartyTransaction(web3, account, target, params) {
             data: params
         }
     })
-
+    if (first) {
+        generate.write({
+            name: 'pre_propose', 
+            id: id,
+            timestamp: Date.now()
+        })
+    }
+    
     getMultiPartyTransaction(web3, id).then(console.log)
     return id;
 }

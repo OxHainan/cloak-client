@@ -76,15 +76,14 @@ const methods = {
 
             const [isDeployed, addr] = await methods.isDeployed(web3, cloakService._address, account.address, data.encodeABI());
             if (isDeployed) {
-                resolve(addr);
+                resolve([addr, null]);
                 return;
             }
 
             let obj = await cloakService.methods.deploy(data.encodeABI());
-            let tx = await methods.send(web3, obj, cloakService._address, account.privateKey);
-            let receipt = await web3.eth.getTransactionReceipt(tx.hash);
+            let receipt = await methods.send(web3, obj, cloakService._address, account.privateKey);
             let newAddr = receipt.logs[0].topics[1].substring(26);
-            resolve(web3.utils.toChecksumAddress(newAddr))
+            resolve([web3.utils.toChecksumAddress(newAddr), receipt])
         });
     },
 
@@ -114,7 +113,7 @@ const methods = {
             if (to == null) 
                 return receipt
 
-            let txMsg = await web3.eth.getTransaction(receipt.transactionHash);
+            let txMsg = await web3.eth.getTransactionReceipt(receipt.transactionHash);
             return txMsg;
         } catch (error) {
             throw error.message

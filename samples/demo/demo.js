@@ -21,7 +21,7 @@ const mpt_id = await common.sendMultiPartyTransaction(cloak_web3, accounts[0], p
     inputs: {
         value: "100"
     }
-})
+}, true);
 
 await new Promise(resolve => setTimeout(resolve, 6000));
 
@@ -30,7 +30,7 @@ const mpt_id1 = await common.sendMultiPartyTransaction(cloak_web3, accounts[0], 
     inputs: {
         value: "10"
     }
-})
+}, true)
 
 await common.sendMultiPartyTransaction(cloak_web3, accounts[1], mpt_id1, {
     function: "multiPartyTransfer",
