@@ -40,22 +40,17 @@ async function getCloakService(web3, addr, path) {
 }
 
 async function transfer(web3, defaultAccount, targetAddr) {
-    web3.eth.getBalance(targetAddr).then(balance => {
-        if (balance > web3.utils.toWei('5', 'ether')) {
-            return;
-        }
-
-        web3.eth.sendTransaction({from: defaultAccount, to: targetAddr, value:  web3.utils.toWei('8', 'ether')})
-    })
+    const balance = await web3.eth.getBalance(targetAddr)
+    if (parseInt(balance) < parseInt(web3.utils.toWei('5', 'ether'))) {       
+        await web3.eth.sendTransaction({from: defaultAccount, to: targetAddr, value:  web3.utils.toWei('8', 'ether')})
+    }
 }
 
 async function deposit(web3, cloakService, account) {
     const available = await Methods.getAvailableBalance(cloakService, account.address);
-    if (available > web3.utils.toWei('5', 'ether')) {
-        return;
-    }
-
-    await Methods.send(web3, null, cloakService._address, account.privateKey, web3.utils.toWei('5', 'ether'))
+    if (parseInt(available) < parseInt(web3.utils.toWei('5', 'ether'))) {
+        await Methods.send(web3, null, cloakService._address, account.privateKey, web3.utils.toWei('5', 'ether'))
+    } 
 }
 
 async function decrypt(pubContract, account, publicKey) {
@@ -69,10 +64,18 @@ async function decrypt(pubContract, account, publicKey) {
         console.log("private balancec: ", decrypted)
     })
 }
+async function managerDeposit(web3, cloakService, manager) {
+    const available = await Methods.getAvailableBalance(cloakService, manager);
+    if (parseInt(available) < parseInt(web3.utils.toWei('5', 'ether'))) {
+        await web3.eth.sendTransaction({ from: manager, to: cloakService._address, value: web3.utils.toWei('5', 'ether') });
+    }
+}
 
 async function generateAccounts(web3, cloakService) {
     let accounts = new Array(10);
     let transferAcc = await web3.eth.getAccounts();
+    await managerDeposit(web3, cloakService, transferAcc[0]);
+
     for (let i = 0; i < accounts.length; i++) {
         accounts[i] = web3.eth.accounts.privateKeyToAccount(web3.utils.keccak256("account" + i));
         if (await Methods.isRegisterPki(cloakService, accounts[i].address)) {
