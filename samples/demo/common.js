@@ -139,7 +139,7 @@ async function register_service(ccfAuthDir, eth_url = 'http://localhost:8545', c
     const web3 = new Web3();
     const httpsAgent = new Agent({
         rejectUnauthorized: false,
-        ca: readFileSync(ccfAuthDir+"/networkcert.pem"),
+        ca: readFileSync(ccfAuthDir+"/service_cert.pem"),
         cert: readFileSync(ccfAuthDir+"/user0_cert.pem"),
         key: readFileSync(ccfAuthDir+"/user0_privk.pem"),
     });
