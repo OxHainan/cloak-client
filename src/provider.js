@@ -17,7 +17,7 @@ class CloakProvider {
         if (payload.method in this.payloadMapper) {
             payload = this.payloadMapper[payload.method](payload)
         }
-        const apiMethod = "/" + payload.method
+        const apiMethod = "/app/" + payload.method
         if (!(apiMethod in this.supportedMethods)) {
             callback(`don't support this api: ${payload.method}`)
             return
