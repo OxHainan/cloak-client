@@ -14,7 +14,7 @@ const accounts = await common.generateAccounts(eth_web3, cloakService)
 const [pub, pri] = await common.deployContract(cloak_web3, eth_web3, cloakService, accounts[0], COMPILE_DIR, 'Demo', [accounts[0].address]);
 
 common.decrypt(pub, accounts[0], cloak_web3.cloakInfo.tee_public_key)
-await common.sendPrivacyTransaction(cloak_web3, accounts[0], pub._address, pri._address, COMPILE_DIR);
+await common.sendPrivacyTransaction(cloak_web3, accounts[0], pub._address, pri._address, COMPILE_DIR, 'Demo');
 
 const mpt_id = await common.sendMultiPartyTransaction(cloak_web3, accounts[0], pri._address, {
     function: "deposit",
