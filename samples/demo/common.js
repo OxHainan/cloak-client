@@ -16,21 +16,20 @@ async function get_abi_and_bin(file, name) {
     return j;
 }
 
-async function deployPrivateContract(web3, account, dir, name) {
-    const contract = await get_abi_and_bin(dir + '/private_contract.sol', name)
+async function deployPrivateContract(web3, account, contract) {
     let addr = await Methods.cloakDeploy(web3, contract, null, account.privateKey);
     return new web3.eth.Contract(contract.abi, addr);
 }
 
-async function deployPublicContract(web3, cloakService, account, dir, name, params) {
-    const contract = await get_abi_and_bin(dir + '/public_contract.sol', name)
+async function deployPublicContract(web3, cloakService, account, contract, params) {
     let addr = await Methods.deploy(web3, cloakService, contract, params, account)
     return new web3.eth.Contract(contract.abi, addr);
 }
 
 async function deployContract(cloakWeb3, ethWeb3, cloakService, account, dir, name, params) {
-    const pub = await deployPublicContract(ethWeb3, cloakService, account, dir, name, params);
-    const pri = await deployPrivateContract(cloakWeb3, account, dir, name);
+    const obj = JSON.parse(readFileSync(dir + '/' + name + '.json'));
+    const pub = await deployPublicContract(ethWeb3, cloakService, account, obj.public, params);
+    const pri = await deployPrivateContract(cloakWeb3, account, obj.private);
     return [pub, pri];
 }
 
@@ -102,15 +101,15 @@ async function register_pki(web3, cloakService, account) {
     }  
 }
 
-async function sendPrivacyTransaction(web3, account, pubAddr, priAddr, dir) {
-    const codeHash = web3.utils.keccak256(readFileSync(dir + "/private_contract.sol"))
+async function sendPrivacyTransaction(web3, account, pubAddr, priAddr, dir, name) {
+    const obj = JSON.parse(readFileSync(dir + "/" + name + ".json"))
     await web3.cloak.sendPrivacyTransaction({
         account: account,
         params: {
             to: priAddr,
-            codeHash: codeHash,
+            codeHash: web3.utils.keccak256(obj.private.bin),
             verifierAddr: pubAddr,
-            data: web3.utils.toHex(readFileSync(dir + "/policy.json"))
+            data: web3.utils.toHex(JSON.stringify(obj.policy))
         }
     })
 }
