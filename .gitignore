@@ -1,2 +1,4 @@
 node_modules/
 samples/demo/output
+samples/demo/package-lock.json
+package-lock.json

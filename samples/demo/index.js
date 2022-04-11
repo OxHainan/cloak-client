@@ -16,7 +16,7 @@ const [pub, pri] = await common.deployContract(cloak_web3, eth_web3, cloakServic
 common.decrypt(pub, accounts[0], cloak_web3.cloakInfo.tee_public_key)
 await common.sendPrivacyTransaction(cloak_web3, accounts[0], pub._address, pri._address, COMPILE_DIR, 'Demo');
 
-const mpt_id = await common.sendMultiPartyTransaction(cloak_web3, accounts[0], pri._address, {
+const mpt_id = await common.sendMultiPartyTransaction(cloak_web3, accounts[0], pri._address, 100, {
     function: "deposit",
     inputs: {
         value: "100"
@@ -25,14 +25,14 @@ const mpt_id = await common.sendMultiPartyTransaction(cloak_web3, accounts[0], p
 
 await new Promise(resolve => setTimeout(resolve, 6000));
 
-const mpt_id1 = await common.sendMultiPartyTransaction(cloak_web3, accounts[0], pri._address, {
+const mpt_id1 = await common.sendMultiPartyTransaction(cloak_web3, accounts[0], pri._address, 100, {
     function: "multiPartyTransfer",
     inputs: {
         value: "10"
     }
 })
 
-await common.sendMultiPartyTransaction(cloak_web3, accounts[1], mpt_id1, {
+await common.sendMultiPartyTransaction(cloak_web3, accounts[1], mpt_id1, 100, {
     function: "multiPartyTransfer",
     inputs: {
         to: accounts[1].address

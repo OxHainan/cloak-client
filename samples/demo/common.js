@@ -114,11 +114,11 @@ async function sendPrivacyTransaction(web3, account, pubAddr, priAddr, dir, name
     })
 }
 
-async function sendMultiPartyTransaction(web3, account, target, params) {
+async function sendMultiPartyTransaction(web3, account, target, nonce, params) {
     const id = await web3.cloak.sendMultiPartyTransaction({
         account: account,
         params: {
-            nonce: web3.utils.toHex(100),
+            nonce: web3.utils.toHex(nonce),
             to: target,
             data: params
         }
