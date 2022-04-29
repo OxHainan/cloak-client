@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: Apache-2.0
+
+pragma cloak ^0.2.0;
+
+contract father5 {
+    uint256 f5;
+    
+    function father5func() public {
+    
+    }
+}

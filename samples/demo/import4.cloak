@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: Apache-2.0
+
+pragma cloak ^0.2.0;
+
+import "./import5.cloak";
+
+contract father4 {
+    uint256 f4;
+    
+    function father4func() public {
+    
+    }
+}
