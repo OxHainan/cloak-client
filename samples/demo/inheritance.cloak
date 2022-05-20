@@ -2,7 +2,7 @@
 
 pragma cloak ^0.2.0;
 
-contract father {
+contract Father {
     mapping(uint256 => uint256) fm0; //0x0
     mapping(uint256 => uint256) fm1; //0x1
     uint256[] farr1; //0x2
@@ -55,14 +55,14 @@ contract father {
     
 }
 
-contract son is father {
+contract Son is Father {
     uint16 si7;
     mapping(uint256 => uint256) sm0;
     mapping(uint256 => uint256) sm1;
     uint256[] sarr1; 
     uint64 si2;
 
-    constructor(address manager) father(manager) public {}
+    constructor(address manager) Father(manager) public {}
 
     function updatefather(uint256 tmp) public {
         fi5 = tmp;

@@ -2,21 +2,28 @@
 
 pragma cloak ^0.2.0;
 
-import {father} from "./import1.cloak";
+import {Father} from "./import1.cloak";
 import "./import2.cloak" as ip2;
 //import * as ip2 from "./import2.cloak"; // same as above
-import {father3 as f3} from "./import3.cloak";
+import {Father3 as f3} from "./import3.cloak";
 import "./import4.cloak";
 import "./import5.cloak";
+//import {Mylib} from "./import6.cloak";
+library Mylib {
+    function mylibfunc() public {
+    
+    }
+}
 
-contract son is father, ip2.father2, f3{
+
+contract Son is Father, ip2.Father2, f3{
     uint16 si7;
     mapping(uint256 => uint256) sm0;
     mapping(uint256 => uint256) sm1;
     uint256[] sarr1; 
     uint64 si2;
 
-    constructor(address manager) father(manager) public {}
+    constructor(address manager) Father(manager) public {}
 
     function updatefather(uint256 tmp) public {
         fi5 = tmp;
@@ -26,4 +33,9 @@ contract son is father, ip2.father2, f3{
     function callfather(uint256 a) public {
         fatherfunc(a);
     }
+
+    function callLib() public {
+        Mylib.mylibfunc();
+    }
+    
 }

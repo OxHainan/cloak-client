@@ -11,9 +11,9 @@ const [cloak_web3, eth_web3] = await common.register_service(AUTH_DIR)
 
 const cloakService = await common.getCloakService(eth_web3, cloak_web3.cloakInfo.cloak_service, './CloakService.json');
 const accounts = await common.generateAccounts(eth_web3, cloakService)
-const [pub, pri] = await common.deployContract(cloak_web3, eth_web3, cloakService, accounts[0], COMPILE_DIR, 'son', [accounts[0].address]);
+const [pub, pri] = await common.deployContract(cloak_web3, eth_web3, cloakService, accounts[0], COMPILE_DIR, 'Son', [accounts[0].address]);
 
-await common.sendPrivacyTransaction(cloak_web3, accounts[0], pub._address, pri._address, COMPILE_DIR, 'son');
+await common.sendPrivacyTransaction(cloak_web3, accounts[0], pub._address, pri._address, COMPILE_DIR, 'Son');
 
 const mpt_id = await common.sendMultiPartyTransaction(cloak_web3, accounts[0], pri._address, 100, {
     function: "getFi1",

@@ -2,7 +2,7 @@
 
 pragma cloak ^0.2.0;
 
-contract Demo {
+contract Mpt {
     final address@all _manager; // all
     mapping(address => uint256) pubBalances; // public
     mapping(address!x => uint256@x) priBalances; // private
@@ -10,6 +10,7 @@ contract Demo {
     constructor(address manager) public {
         _manager = manager;
         pubBalances[manager] = 1000;
+
     }
 
     //  CT-me
@@ -40,5 +41,9 @@ contract Demo {
         priBalances[me] = priBalances[me] - value;
         priBalances[to] = priBalances[to] + value;
         return true;
+    }
+
+    function getPriBalance(address addr1) view public returns (uint256@all) {
+        return priBalances[addr1];
     }
 }

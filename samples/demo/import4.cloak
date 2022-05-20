@@ -4,7 +4,7 @@ pragma cloak ^0.2.0;
 
 import "./import5.cloak";
 
-contract father4 {
+contract Father4 {
     uint256 f4;
     
     function father4func() public {

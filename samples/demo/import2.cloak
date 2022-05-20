@@ -2,7 +2,7 @@
 
 pragma cloak ^0.2.0;
 
-contract father2 {
+contract Father2 {
     uint256 f2;
     
     function father2func() public {

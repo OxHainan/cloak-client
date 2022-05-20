@@ -1,0 +1,43 @@
+// SPDX-License-Identifier: Apache-2.0
+
+pragma cloak ^0.2.0;
+
+contract Type {
+    final address _examinator; 
+    mapping (address=> uint256@_examinator) answers;
+    mapping (address!student => uint256@student) points;
+    uint256@_examinator ex_id;
+    uint256 pub_id;
+    int[10] arr;
+    
+    struct MyStruct {
+        uint256 ui;
+        bytes by;
+        bool bo;
+        string st;
+    }
+    MyStruct myStruct;
+
+    constructor(address examinator) public {
+        _examinator = examinator;
+        myStruct.ui = 123;
+        myStruct.st = 'abc';
+    }
+
+    function answer(uint256 ans) public {
+        answers[me] = ans;
+    }
+
+    function check(address student) public {
+        require(msg.sender == _examinator);
+        if (answers[student] == 1) {
+            points[student] = 100;
+        } else {
+            points[student] = 0;
+        }
+    }
+
+    function testReveal() public {
+        pub_id = reveal(ex_id, all);
+    }
+}
