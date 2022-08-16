@@ -1,0 +1,20 @@
+{
+  "name": "cloak-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "types": "./index.d.ts",
+  "dependencies": {
+    "underscore": "^1.13.4",
+    "web3": "^1.7.5",
+    "xhr2-cookies": "^1.1.0"
+  }
+}
