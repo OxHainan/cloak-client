@@ -1,7 +1,11 @@
 var _ = require('underscore');
 
 var errors = require('web3-core-helpers').errors;
-var XHR2 = require('xhr2-cookies').XMLHttpRequest; // jshint ignore: line
+var https = require('https');
+// Apply missing polyfill for IE
+require('cross-fetch/polyfill');
+require('es6-promise').polyfill();
+require('abortcontroller-polyfill/dist/polyfill-patch-fetch');
 
 var HttpProvider = function HttpProvider(host, options) {
     options = options || {};
@@ -25,59 +29,89 @@ var HttpProvider = function HttpProvider(host, options) {
     
 };
 
-HttpProvider.prototype._prepareRequest = function(path) {
-    var request;
-    request = new XHR2();
-    var url = this.host + '/app/' + path;
-    var agents = { httpsAgent: this.httpsAgent, httpAgent: this.httpAgent, baseUrl: this.baseUrl };
+HttpProvider.prototype._prepareRequest = function(payload) {
+    let params = payload.params.length == 1 && _.isObject(payload.params[0]) ? payload.params[0] : payload.params;
+    var options = {
+        method: 'POST',
+        body: JSON.stringify(params)
+    };
+
+    var headers = {};
+    var controller;
+    if (typeof AbortController !== 'undefined') {
+        controller = new AbortController();
+    }
+    else if (typeof window !== 'undefined' && typeof window.AbortController !== 'undefined') {
+        // Some chrome version doesn't recognize new AbortController(); so we are using it from window instead
+        // https://stackoverflow.com/questions/55718778/why-abortcontroller-is-not-defined
+        controller = new window.AbortController();
+    }
+
+    if (typeof controller !== 'undefined') {
+        options.signal = controller.signal;
+    }
+
+    var agents = { httpsAgent: this.httpsAgent, httpAgent: this.httpAgent };
     if (this.agent) {
         agents.httpsAgent = this.httpsAgent;
         agents.httpAgent = this.agent.http;
-        agents.baseUrl = this.agent.baseUrl;
     }
-
-    request.nodejsSet(agents);
-    request.open('POST', url, true);
-    request.setRequestHeader('Content-Type', 'application/json');
-    request.timeout = this.timeout;
-    request.withCredentials = this.withCredentials;
+    options.agent = agents.httpsAgent;
+    
     if (this.headers) {
         this.headers.forEach(function (header) {
-            request.setRequestHeader(header.name, header.value);
+            headers[header.name] = header.value;
         });
     }
-    return request;
+    // Default headers
+    if (!headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+    }
+    // As the Fetch API supports the credentials as following options 'include', 'omit', 'same-origin'
+    // https://developer.mozilla.org/en-US/docs/Web/API/fetch#credentials
+    // To avoid breaking change in 1.x we override this value based on boolean option.
+    if (this.withCredentials) {
+        options.credentials = 'include';
+    }
+    else {
+        options.credentials = 'omit';
+    }
+    options.headers = headers;
+    if (this.timeout > 0 && typeof controller !== 'undefined') {
+        this.timeoutId = setTimeout(function () {
+            controller.abort();
+        }, this.timeout);
+    }
+
+    return options;
 }
 
 HttpProvider.prototype.send = function (payload, callback) {
-    var _this = this;
-    let params = payload.params.length == 1 && _.isObject(payload.params[0]) ? payload.params[0] : payload.params;
-    var request = this._prepareRequest(payload.method);
-    request.onreadystatechange = function () {
-        if (request.readyState === 4 && request.timeout !== 1) {
-            var result = request.responseText;
-            var error = null;
-            try {
-                result = JSON.parse(result);
-            }
-            catch (e) {
-                error = errors.InvalidResponse(request.responseText);
-            }
-            _this.connected = true;
-            callback(error, result);
+    var options = this._prepareRequest(payload);
+    var success = function (response) {
+        if (this.timeoutId !== undefined) {
+            clearTimeout(this.timeoutId);
         }
+        // Response is a stream data so should be awaited for json response
+        response.json().then(function (data) {
+            callback(null, data);
+        }).catch(function (error) {
+            callback(errors.InvalidResponse(response));
+        });
     };
-    request.ontimeout = function () {
-        _this.connected = false;
-        callback(errors.ConnectionTimeout(this.timeout));
-    };
-    try {
-        request.send(JSON.stringify(params));
-    }
-    catch (error) {
-        this.connected = false;
+    var failed = function (error) {
+        if (this.timeoutId !== undefined) {
+            clearTimeout(this.timeoutId);
+        }
+        if (error.name === 'AbortError') {
+            callback(errors.ConnectionTimeout(this.timeout));
+        }
         callback(errors.InvalidConnection(this.host));
-    }
+    };
+
+    fetch(this.host + '/app/' + payload.method, options)
+        .then(success.bind(this))
+        .catch(failed.bind(this));
 };
 
 HttpProvider.prototype.disconnect = function () {

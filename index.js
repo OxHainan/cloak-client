@@ -14,7 +14,6 @@ var Cloak = function Cloak() {
     this.eth = new Eth(this);
     this.network = new Network(this);
     var setProvider = this.setProvider;
-    this.providers.HttpProvider = HttpProvider;
     this.setProvider = function (provider) {
         setProvider.apply(_this, arguments);
         _this.eth.setRequestManager(_this._requestManager)
