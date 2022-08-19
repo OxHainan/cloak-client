@@ -12,20 +12,22 @@ var HttpProvider = function HttpProvider(host, options) {
     this.withCredentials = options.withCredentials || false;
     this.timeout = options.timeout || 0;
     this.headers = options.headers;
-    this.agent = options.agent;
     this.connected = false;
     const keepAlive = options.keepAlive !== false;
 
     this.host = host || 'https://localhost:8000';
-    if (!this.agent) {
-        throw new Error('No https');
-    }
 
     if (this.host.substring(0,5) !== "https"){
         throw new Error("Invalid HTTPS protocol")
     }
 
-    this.httpsAgent = this.agent;
+    this.httpsAgent = new https.Agent({
+        rejectUnauthorized: false,
+        ca: options.ca,
+        cert: options.cert,
+        key: options.key,
+        keepAlive: keepAlive
+    });
     
 };
 
@@ -52,10 +54,6 @@ HttpProvider.prototype._prepareRequest = function(payload) {
     }
 
     var agents = { httpsAgent: this.httpsAgent, httpAgent: this.httpAgent };
-    if (this.agent) {
-        agents.httpsAgent = this.httpsAgent;
-        agents.httpAgent = this.agent.http;
-    }
     options.agent = agents.httpsAgent;
     
     if (this.headers) {
