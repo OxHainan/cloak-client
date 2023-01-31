@@ -17,21 +17,15 @@ var HttpProvider = function HttpProvider(host, options) {
 
     this.host = host || 'https://localhost:8000';
 
-    if (this.host.substring(0,5) !== "https"){
+    if (this.host.substring(0, 5) !== "https") {
         throw new Error("Invalid HTTPS protocol")
     }
 
-    this.httpsAgent = new https.Agent({
-        rejectUnauthorized: false,
-        ca: options.ca,
-        cert: options.cert,
-        key: options.key,
-        keepAlive: keepAlive
-    });
-    
+    this.httpsAgent = options.agent;
+    this.httpsAgent.keepAlive = keepAlive;
 };
 
-HttpProvider.prototype._prepareRequest = function(payload) {
+HttpProvider.prototype._prepareRequest = function (payload) {
     let params = payload.params.length == 1 && _.isObject(payload.params[0]) ? payload.params[0] : payload.params;
     var options = {
         method: 'POST',
@@ -55,7 +49,7 @@ HttpProvider.prototype._prepareRequest = function(payload) {
 
     var agents = { httpsAgent: this.httpsAgent, httpAgent: this.httpAgent };
     options.agent = agents.httpsAgent;
-    
+
     if (this.headers) {
         this.headers.forEach(function (header) {
             headers[header.name] = header.value;
