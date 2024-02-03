@@ -2,8 +2,8 @@
 
 const { readFileSync } = require('fs');
 const Web3 = require('web3');
-const { writeData } = require("./generate")
-const Cloak = require('../index.js')
+const { writeData } = require("../generate")
+const Cloak = require('../../index.js')
 const { Agent } = require('https');
 var args = process.argv.slice(2);
 const httpsAgent = new Agent({
@@ -22,16 +22,16 @@ const cloak = new Cloak(new Cloak.HttpProvider(cloak_url, { agent: httpsAgent })
 let service_addr = args[1];
 let baseline = args[2]
 let proxy_addr = args[3]
-var ProxyPath = './contracts/TransparentProxy.json'
-// let logic_path = './contracts/Logic1.json'
-let logic_path = './contracts/AuctionEngine.json'
-let erc20_path = './contracts/MZToken.json'
+var ProxyPath = './../contracts/TransparentProxy.json'
+// let logic_path = './../contracts/Logic1.json'
+let logic_path = './../contracts/AuctionEngine.json'
+let erc20_path = './../contracts/MZToken.json'
 var erc20_onchain = ''
 var erc20_offchain = ''
-let nft_path = './contracts/BookToken.json'
+let nft_path = './../contracts/BookToken.json'
 var nft_onchain = ''
 var nft_offchain = ''
-var ServicePath = './contracts/Service.json';
+var ServicePath = './../contracts/Service.json';
 var userKey = '0x55b99466a43e0ccb52a11a42a3b4e10bfba630e8427570035f6db7b5c22f681e';
 let user = web3.eth.accounts.privateKeyToAccount(userKey);
 // 发送交易
@@ -73,6 +73,7 @@ async function send(instance, to, data, nonce, pkey, deploy_method) {
     }, pkey);
 
     let receipt = await instance.eth.sendSignedTransaction(hex.rawTransaction)
+
     if (check_network_is_web3(instance)) {
         writeData({
             "baseline": baseline,
@@ -82,6 +83,7 @@ async function send(instance, to, data, nonce, pkey, deploy_method) {
             "size": Buffer.byteLength(hex.rawTransaction, 'utf8')
         })
     }
+
     if (to === null) {
         return receipt.contractAddress;
     }
@@ -94,6 +96,7 @@ async function sendSignedTransaction(
 ) {
     let now = Date.now();
     let receipt = await send(cloak, instance._address, data, index, privateKey)
+
     writeData({
         "baseline": baseline,
         "name": "cloak",
@@ -112,13 +115,12 @@ async function deploy(instance, method, path, params) {
         data: obj.bytecode,
         arguments: params
     });
-    let nonce =  await instance.eth.getTransactionCount(user.address)
+    let nonce = await instance.eth.getTransactionCount(user.address)
     let addr = await send(instance, null, data, nonce, userKey, method);
     return new instance.eth.Contract(obj.abi, addr);
 }
 
 async function deploy_cloak(instance, method, path, nonce, params) {
-    console.log("nonce: ", nonce)
     let obj = JSON.parse(readFileSync(path));
     let it = new instance.eth.Contract(obj.abi);
     let data = await it.deploy({
@@ -167,6 +169,14 @@ async function get_logic(proxy_addr) {
     return get_contract_handle(web3, logic_path, logic)
 }
 
+function create_account() {
+    let accounts = new Array(200);
+    for (let i = 0; i < accounts.length; i++) {
+        accounts[i] = web3.eth.accounts.privateKeyToAccount(web3.utils.keccak256("accounts" + i.toString()))
+    }
+
+    return accounts;
+}
 
 delay().then(async () => {
     if (proxy_addr !== undefined) {
@@ -176,10 +186,12 @@ delay().then(async () => {
     return get_contract_handle(cloak, logic_path, proxy._address);
 }).then(async (it) => {
     let logic = await get_logic(it._address)
-    let accounts = await web3.eth.getAccounts()
+    // let accounts = create_account()
     erc20_onchain = await deploy(web3, "erc20", erc20_path);
     nft_onchain = await deploy(web3, "nft", nft_path);
-    let nonce =  await cloak.eth.getTransactionCount(user.address)
+    console.log("user: ", user.address)
+    console.log(nft_onchain._address)
+    let nonce = await cloak.eth.getTransactionCount(user.address)
     erc20_offchain = await deploy_cloak(cloak, "erc20", erc20_path, nonce);
     nft_offchain = await deploy_cloak(cloak, "nft", nft_path, nonce + 1);
     nonce = await cloak.eth.getTransactionCount(user.address)
@@ -190,14 +202,21 @@ delay().then(async () => {
     // test createAuction
     // let web3Tx = new Array(baseline);
     // nonce = await cloak.eth.getTransactionCount(user.address)
-    // for (let i = 0; i< baseline; i++) {
+    // let owenr = await nft_offchain.methods.ownerOf(0).call();
+    // let getApproved = await nft_offchain.methods.getApproved(0).call();
+    // console.log(owenr)
+    // console.log(getApproved, "to ", it._address)
+    // for (let i = 0; i < baseline; i++) {
     //     data = it.methods.createAuction(nft_offchain._address, i, erc20_offchain._address, 0, 0, 1);
-    //     sendSignedTransaction(it, userKey, data, i + nonce)
+    //     await sendSignedTransaction(it, userKey, data, nonce)
     //     web3Tx[i] = data;
     // }
+
     // await delay(10000)
     // for (let i = 0; i < web3Tx.length; i++) {
-    //     data = it.methods.createAuction(nft_onchain._address, i, erc20_onchain._address, 0, 0, 1);
+    //     data = nft_onchain.methods.approve(logic._address, 0);
+    //     await sendToWeb3(nft_onchain._address, data, userKey);
+    //     data = it.methods.createAuction(nft_onchain._address, 0, erc20_onchain._address, 0, 0, 1);
     //     await sendToWeb3(logic._address, data, userKey)
     // }
 
@@ -206,24 +225,24 @@ delay().then(async () => {
     sendSignedTransaction(it, userKey, data, nonce + 1)
     await delay(1000);
     data = it.methods.createAuction(nft_onchain._address, 0, erc20_onchain._address, 0, 0, 1);
-    await sendToWeb3(logic._address, data, userKey)
-    await delay(1000);
+    // await sendToWeb3(logic._address, data, userKey)
+    // await delay(1000);
     data = erc20_offchain.methods.approve(it._address, 501000);
     sendSignedTransaction(erc20_offchain, userKey, data, nonce + 2)
     await delay(1000);
     nonce = await cloak.eth.getTransactionCount(user.address)
     for (let i = 0; i < baseline; i++) {
         data = it.methods.bid(0, i);
-        sendSignedTransaction(it, userKey, data, i+ nonce )
+        sendSignedTransaction(it, userKey, data, nonce + i)
     }
-    await delay(10000)
-    data = erc20_onchain.methods.approve(logic._address, 501000);
-    sendToWeb3(erc20_onchain._address, data, userKey)
-    await delay(1000);
-    for (let i = 0; i < baseline; i++) {
-        data = it.methods.bid(0, i);
-        await sendToWeb3(logic._address, data, userKey)
-    }
+    // await delay(10000)
+    // data = erc20_onchain.methods.approve(logic._address, 501000);
+    // sendToWeb3(erc20_onchain._address, data, userKey)
+    // await delay(1000);
+    // for (let i = 0; i < baseline; i++) {
+    //     data = it.methods.bid(0, i);
+    //     await sendToWeb3(logic._address, data, userKey)
+    // }
 })
 
 

@@ -6,10 +6,15 @@ from loguru import logger as LOG
 from multiprocessing import Process
 import time
 import traceback
-
+from hexbytes import HexBytes
 
 def writeToFile(msg: dict):
     f = open("data/txs.txt", "a")
+    f.write(json.dumps(msg) + "\n")
+    f.close()
+
+def writeState(msg: dict):
+    f = open("data/state.txt", "a")
     f.write(json.dumps(msg) + "\n")
     f.close()
 
@@ -18,13 +23,43 @@ class Handler(object):
         self.args = args
     
     def handle_receipt(self, msg):
-        res = self.args.w3.eth.wait_for_transaction_receipt(msg)
-        LOG.info(msg)
+        tx_hash = msg[:66]
+        res = self.args.w3.eth.wait_for_transaction_receipt(tx_hash)
+        LOG.info(tx_hash)
+        split_time = msg[67:].split(',')
+        parsed_time = {}
+        for val in split_time:
+            key, val = val.split(':')
+            parsed_time[key.strip()] = int(val.strip())
+
         writeToFile({
             "name": "Sync",
-            "id": msg,
-            "gasUsed": res["gasUsed"]
+            "id": tx_hash,
+            "gasUsed": res["gasUsed"],
+            "time": parsed_time
         })
+    
+    def handle_state(self, msg, name):
+        split_msg = msg.split(',')
+        parse_state = {}
+        for val in split_msg:
+            key, val = val.split(':')
+            parse_state[key.strip()] = val.strip()
+        writeState({
+            "name": name,
+            "args": parse_state
+        })
+
+
+    def handle_logs(self, msg):
+        split_msg = msg.split('; ')
+        if split_msg[0] == "tx":
+            self.handle_receipt(split_msg[1])
+        elif split_msg[0] == "get_export_state":
+            self.handle_state(split_msg[1], "state")
+        elif split_msg[0] == "sync_contract_escrow":
+            self.handle_state(split_msg[1], "escrow")
+        
 
 class EventHandler(pyinotify.ProcessEvent):
     def __init__(self,cmd_args, *args, **kwargs):
@@ -44,7 +79,7 @@ class EventHandler(pyinotify.ProcessEvent):
                 continue
             new_line = line[pos + 6:]
             try:
-                Handler(self.args).handle_receipt(new_line[:66])
+                Handler(self.args).handle_logs(new_line)
             except Exception as e:
                 traceback.print_exc()
 

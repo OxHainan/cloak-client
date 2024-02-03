@@ -2,7 +2,7 @@
 
 const { readFileSync } = require('fs');
 const Web3 = require('web3');
-const { writeData } = require("./generate")
+const { writeData } = require("../generate")
 const Cloak = require('../../index.js')
 const { Agent } = require('https');
 var args = process.argv.slice(2);
@@ -171,7 +171,7 @@ delay().then(async () => {
     let proxy = await escrow();
     return get_contract_handle(cloak, logic_path, proxy._address);
 }).then(async (it) => {
-    let logic = await get_logic(it._address)
+    // let logic = await get_logic(it._address)
     let accounts = create_account()
     let nonce = await cloak.eth.getTransactionCount(user.address)
     let web3Tx = new Array(baseline);
@@ -181,11 +181,6 @@ delay().then(async () => {
         let data = it.methods.createMember(acc.address.substr(0, 34), [acc.address.substr(0, 34), acc.address.substr(0, 34)], "account", "account", "account@123.com", [acc.privateKey, acc.privateKey, acc.privateKey], [acc.privateKey], "account", "account");
         sendSignedTransaction(it, userKey, data, i + nonce)
         web3Tx[i] = data;
-    }
-
-    await delay(10000)
-    for (let i = 0; i < web3Tx.length; i++) {
-        await sendToWeb3(logic._address, web3Tx[i], accounts[i % accounts.length].privateKey)
     }
 
 })

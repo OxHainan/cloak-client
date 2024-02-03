@@ -26,7 +26,9 @@ var ProxyPath = './../contracts/TransparentProxy.json'
 let logic_path = './../contracts/ERC20.json'
 var ServicePath = './../contracts/Service.json';
 var userKey = '0x55b99466a43e0ccb52a11a42a3b4e10bfba630e8427570035f6db7b5c22f681e';
+var accountKey = '0x55b99466a43e0ccb52a11a42a3b4e10bfba630e8427570035f6db7b5c22f682e';
 let user = web3.eth.accounts.privateKeyToAccount(userKey);
+let account = web3.eth.accounts.privateKeyToAccount(accountKey);
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function send(instance, to, data, nonce, pkey, deploy_method) {
@@ -111,8 +113,10 @@ async function deploy(method, path, params) {
 }
 
 async function deploy_proxy() {
-    let logic = await deploy("logic", logic_path, [1000000, "TEST", 2, "TT"]);
+    let logic = await deploy("logic", logic_path, [100000000000000, "TEST", 2, "TT"]);
     let proxy = await deploy("proxy", ProxyPath, [logic._address, user.address])
+    let nonce = await web3.eth.getTransactionCount(account.address)
+    await send(web3, proxy._address, logic.methods.mint(1000000000000), nonce, accountKey);
     return proxy;
 }
 
@@ -128,7 +132,6 @@ function check_network_is_web3(instance) {
 async function escrow() {
     let proxy = await deploy_proxy();
     let logic = await proxy.methods.implementation().call({ from: user.address });
-    console.log("logic: ", logic)
     let service = get_contract_handle(web3, ServicePath, service_addr);
     let bridge = await service.methods.proxyBridge().call();
     let nonce = await web3.eth.getTransactionCount(user.address)
@@ -147,7 +150,7 @@ async function get_logic(proxy_addr) {
 }
 
 function create_account() {
-    let accounts = new Array(100);
+    let accounts = new Array(400);
     for (let i = 0; i < accounts.length; i++) {
         accounts[i] = web3.eth.accounts.privateKeyToAccount(web3.utils.keccak256("accounts" + i.toString()))
     }
@@ -171,20 +174,15 @@ delay().then(async () => {
     let proxy = await escrow();
     return get_contract_handle(cloak, logic_path, proxy._address);
 }).then(async (it) => {
-    let logic = await get_logic(it._address)
+
     let accounts = create_account()
-    let nonce = await cloak.eth.getTransactionCount(user.address)
+    let nonce = await cloak.eth.getTransactionCount(account.address)
     let web3Tx = new Array(baseline);
     for (let i = 0; i < baseline; i++) {
-        let r = i % accounts.length
-        let data = it.methods.transfer(accounts[random(r)].address, 10000);
-        sendSignedTransaction(it, accounts[r].privateKey, data, i + nonce)
+        let data = it.methods.transfer(accounts[i].address, 10000);
+        sendSignedTransaction(it, accountKey, data, i + nonce)
         web3Tx[i] = data;
     }
 
-    await delay(10000)
-    for (let i = 0; i < web3Tx.length; i++) {
-        await sendToWeb3(logic._address, web3Tx[i], accounts[i % accounts.length].privateKey)
-    }
-
 })
+
